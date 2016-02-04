@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Wifi Monitor{% endblock %}
+
+{% block body %}
+
+    <script>
+        function get_more_data() {
+            $.getJSON('/refresh_probe_requests', function (data) {
+                $(document).ready(function () {
+                    $("#probeRequestsTable").find("tr:gt(0)").remove();
+
+                    console.log(data.probe_requests.length);
+
+                    for (var i = 0; i < data.probe_requests.length; i++) {
+                        var pr = data.probe_requests[i];
+                        $("#probeRequestsTable").append("<tr><td>" + pr.src + "</td><td>" + pr.src_vendor + "</td><td>" + pr.ssid + "</td><td>" + pr.ssi_signal + "</td><td>" + pr.timestamp + "</td><td>" + pr.alias + "</td><td>" + pr.whitelist + "</td></tr>")
+                    }
+
+
+                    $("#probeHeader").text('Probe Request History (' + data.probe_requests.length + ')');
+                });
+            });
+        }
+        ;
+        setInterval(function () {
+            get_more_data()
+        }, 3000);
+    </script>
+
+    <div class=page>
+        <h1 id="probeHeader">Probe Request History ({{ probe_requests|length }})</h1>
+
+        {{ pagination.info }}
+        {{ pagination.links }}
+        <table id="probeRequestsTable">
+            <tr>
+                <th>Device MAC</th>
+                <th>Device Vendor</th>
+                <th>SSID</th>
+                <th>SSI Signal</th>
+                <th>Date</th>
+                <th>Alias</th>
+                <th>Whitelist</th>
+            </tr>
+
+            {% for pr in probe_requests %}
+                <tr>
+                    <td>{{ pr.src }}</td>
+                    <td>{{ pr.src_vendor }}</td>
+                    <td>{{ pr.ssid }}</td>
+                    <td>{{ pr.ssi_signal }}</td>
+                    <td>{{ pr.timestamp }}</td>
+                    <td>{{ pr.alias }}</td>
+                    <td>{{ pr.whitelist }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        {{ pagination.links }}
+    </div>
+{% endblock %}
