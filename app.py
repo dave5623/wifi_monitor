@@ -6,9 +6,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 from wifi_monitor.sniff_thread import Sniff_Thread
 
-# os.remove('wifi_monitor.db')
-
 # airmon-ng check kill && airmon-ng start wlan0
+
+DEBUG = True
 
 # init Flask app and SQL Alchemy
 config = ConfigParser.ConfigParser()
@@ -67,18 +67,22 @@ db.create_all()
 db.session.commit()
 
 # start sniffing traffic
-sniffer = Sniff_Thread()
-sniffer.start()
+if DEBUG is True:
+    sniffer = Sniff_Thread()
+    sniffer.start()
 
 
 @app.route('/', defaults={'page': 1})
-@app.route('/index/page/<int:page>')
-@app.route('/index', defaults={'page': 1})
+@app.route('/page/<int:page>')
+@app.route('/page/', defaults={'page': 1})
 def index(page):
     probe_requests = ProbeRequest.query.order_by(ProbeRequest.timestamp.desc()).all()
-    pagination = Pagination(page=page, total=len(probe_requests), search=False, record_name="probe requests")
-    print str(pagination)
-    return render_template('index.html', probe_requests=probe_requests, pagination=pagination)
+    pagination = Pagination(page=page, total=len(probe_requests), search=False, record_name="probe requests",
+                            per_page=200)
+    # print str(pagination)
+
+    return render_template('index.html', probe_requests=probe_requests[((page - 1) * 200): (page * 200)],
+                           pagination=pagination)
 
 
 def shutdown_server():
@@ -90,8 +94,9 @@ def shutdown_server():
 
 @app.route('/shutdown')
 def shutdown():
-    sniffer.stop()
-    sniffer.join(10000)
+    if DEBUG is True:
+        sniffer.stop()
+        sniffer.join(10000)
     shutdown_server()
     return 'Server shutting down...'
 
@@ -107,4 +112,5 @@ if __name__ == "__main__":
         app.run('0.0.0.0', 5000)
     except KeyboardInterrupt:
         print "Caught ctrl-c"
-        sniffer.stop()
+        if DEBUG is True:
+            sniffer.stop()
