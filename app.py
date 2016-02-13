@@ -67,7 +67,7 @@ db.create_all()
 db.session.commit()
 
 # start sniffing traffic
-if DEBUG is True:
+if DEBUG is not True:
     sniffer = Sniff_Thread()
     sniffer.start()
 
@@ -79,7 +79,6 @@ def index(page):
     probe_requests = ProbeRequest.query.order_by(ProbeRequest.timestamp.desc()).all()
     pagination = Pagination(page=page, total=len(probe_requests), search=False, record_name="probe requests",
                             per_page=200)
-    # print str(pagination)
 
     return render_template('index.html', probe_requests=probe_requests[((page - 1) * 200): (page * 200)],
                            pagination=pagination)
@@ -94,7 +93,7 @@ def shutdown_server():
 
 @app.route('/shutdown')
 def shutdown():
-    if DEBUG is True:
+    if DEBUG is not True:
         sniffer.stop()
         sniffer.join(10000)
     shutdown_server()
@@ -112,5 +111,5 @@ if __name__ == "__main__":
         app.run('0.0.0.0', 5000)
     except KeyboardInterrupt:
         print "Caught ctrl-c"
-        if DEBUG is True:
+        if DEBUG is not True:
             sniffer.stop()
