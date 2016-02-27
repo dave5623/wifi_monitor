@@ -4,6 +4,8 @@ from flask import Flask, request, render_template, jsonify
 from flask.ext.paginate import Pagination
 from flask_sqlalchemy import SQLAlchemy
 
+from sqlalchemy import func
+
 from wifi_monitor.sniff_thread import Sniff_Thread
 
 # airmon-ng check kill && airmon-ng start wlan0
@@ -76,11 +78,14 @@ if DEBUG is not True:
 @app.route('/page/<int:page>')
 @app.route('/page/', defaults={'page': 1})
 def index(page):
-    probe_requests = ProbeRequest.query.order_by(ProbeRequest.timestamp.desc()).all()
-    pagination = Pagination(page=page, total=len(probe_requests), search=False, record_name="probe requests",
+    # get total number of probe requests
+    total_probe_requests = db.session.query(func.count(ProbeRequest.id)).scalar()
+    # only grab the number of probe requests necessary for the page requested
+    probe_requests = ProbeRequest.query.order_by(ProbeRequest.timestamp.desc()).offset((page - 1) * 200).limit(200).all()
+    pagination = Pagination(page=page, total=total_probe_requests, search=False, record_name="probe requests",
                             per_page=200, bs_version=3)
 
-    return render_template('index.html', probe_requests=probe_requests[((page - 1) * 200): (page * 200)],
+    return render_template('index.html', probe_requests=probe_requests,
                            pagination=pagination)
 
 
