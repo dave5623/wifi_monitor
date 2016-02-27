@@ -27,11 +27,12 @@
     {#        }, 3000);#}
     {#    </script>#}
 
-    <h1 id="probeHeader">Probe Request History ({{ probe_requests | length }})</h1>
+    <h1 id="probeHeader">Probe Request History ({{ pagination.total }})</h1>
 
     {{ pagination.info }}
     {{ pagination.links }}
     <table id="probeRequestsTable">
+        <thead>
         <tr>
             <th>Device MAC</th>
             <th>Device Vendor</th>
@@ -41,7 +42,8 @@
             <th>Alias</th>
             <th>Whitelist</th>
         </tr>
-
+        </thead>
+<tbody>
         {% for pr in probe_requests %}
             <tr>
                 <td>{{ pr.src }}</td>
@@ -52,7 +54,7 @@
                 <td>{{ pr.alias }}</td>
                 <td>{{ pr.whitelist }}</td>
             </tr>
-        {% endfor %}
+        {% endfor %}</tbody>
     </table>
     {{ pagination.links }}
 {% endblock %}

@@ -83,7 +83,7 @@ def index(page):
     # only grab the number of probe requests necessary for the page requested
     probe_requests = ProbeRequest.query.order_by(ProbeRequest.timestamp.desc()).offset((page - 1) * 200).limit(200).all()
     pagination = Pagination(page=page, total=total_probe_requests, search=False, record_name="probe requests",
-                            per_page=200, bs_version=3)
+                            per_page=200, bs_version=3, format_total=True, format_number=True)
 
     return render_template('index.html', probe_requests=probe_requests,
                            pagination=pagination)
