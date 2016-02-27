@@ -78,7 +78,7 @@ if DEBUG is not True:
 def index(page):
     probe_requests = ProbeRequest.query.order_by(ProbeRequest.timestamp.desc()).all()
     pagination = Pagination(page=page, total=len(probe_requests), search=False, record_name="probe requests",
-                            per_page=200)
+                            per_page=200, bs_version=3)
 
     return render_template('index.html', probe_requests=probe_requests[((page - 1) * 200): (page * 200)],
                            pagination=pagination)
