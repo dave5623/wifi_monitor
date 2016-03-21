@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Wifi Monitor - Device List{% endblock %}
+{% block js_dependency %}
+    <script type=text/javascript src="{{ url_for('static', filename='js/jquery.tablesorter.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+
+    <div>
+    <h1>{{ dev_count | length }} Total Devices</h1>
+    </div>
+
+    <table id="deviceTable" cellpadding="10" cellspacing="5" class="table-bordered table-hover tablesorter">
+        <thead>
+            <tr>
+                <th>Device MAC</th>
+                <th># of Hits</th>
+                <th>Last Seen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dev, info in dev_count.iteritems() %}
+                <tr>
+                    <td>
+                    {% if dev.alias|length > 0 %}
+                        {{ dev.alias }}
+                    {% else %}
+                        {{ dev.src }}
+                    {% endif %}</td>
+                    <td> {{ info[0] }}</td>
+                    <td>{{ info[1] | datetime }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        $(document).ready(function()
+        {
+{#           $("#deviceTable").tablesorter( {sortList:[[0,0], [1,0]]});#}
+           $("#deviceTable").tablesorter();
+        });
+    </script>
+
+{#     <table id="deviceListTable" class="table-bordered table-hover">#}
+{#        <thead>#}
+{#        <tr>#}
+{#            <th>Device MAC</th>#}
+{#        </tr>#}
+{#        </thead>#}
+{#        <tbody>#}
+{#        {% for pr in probe_requests %}#}
+{#            <tr>#}
+                {# title will provide the MAC address as a tool tip #}
+{#                <td title="{{ pr.src }}">#}
+{#                    {% if pr.alias|length > 0 %}#}
+{#                        {{ pr.alias }}#}
+{#                    {% else %}#}
+{#                        {{ pr.src }}#}
+{#                    {% endif %}</td>#}
+{#                <td>{{ pr.src_vendor }}</td>#}
+{#                <td>#}
+{#                    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#editRequest"#}
+{#                            data-mac_address="{{ pr.src }}" data-src_vendor="{{ pr.src_vendor }}"#}
+{#                            data-alias="{{ pr.alias }}">#}
+{#                        Edit#}
+{#                    </button>#}
+{#                </td>#}
+{#            </tr>#}
+{#        {% endfor %}</tbody>#}
+{#    </table>#}
+
+{% endblock %}
+

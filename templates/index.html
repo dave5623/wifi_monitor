@@ -39,22 +39,77 @@
             <th>SSID</th>
             <th>SSI Signal</th>
             <th>Date</th>
-            <th>Alias</th>
-            <th>Whitelist</th>
+{#            <th>Alias</th>#}
+            <th></th>
         </tr>
         </thead>
-<tbody>
+        <tbody>
         {% for pr in probe_requests %}
             <tr>
-                <td>{{ pr.src }}</td>
+                {# title will provide the MAC address as a tool tip #}
+                <td title="{{ pr.src }}">
+                    {% if pr.alias|length > 0 %}
+                        {{ pr.alias }}
+                    {% else %}
+                        {{ pr.src }}
+                    {% endif %}</td>
                 <td>{{ pr.src_vendor }}</td>
                 <td>{{ pr.ssid }}</td>
                 <td>{{ pr.ssi_signal }}</td>
-                <td>{{ pr.timestamp }}</td>
-                <td>{{ pr.alias }}</td>
-                <td>{{ pr.whitelist }}</td>
+                <td>{{ pr.timestamp | datetime }}</td>
+{#                <td>{{ pr.alias }}</td>#}
+                <td>
+                    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#editRequest"
+                            data-mac_address="{{ pr.src }}" data-src_vendor="{{ pr.src_vendor }}"
+                            data-alias="{{ pr.alias }}">
+                        Edit
+                    </button>
+                </td>
             </tr>
         {% endfor %}</tbody>
     </table>
     {{ pagination.links }}
+
+    <div class="modal fade" id="editRequest" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Edit Probe Request</h4>
+                </div>
+                <form method="POST" action="/page/{{ page }}" name="edit_form">
+                    <div class="modal-body">
+                        {{ form.csrf_token }}
+                        {{ form.mac_address.label }}
+                        {{ form.mac_address }}
+                        <br/>
+                        {{ form.device_vendor.label }}
+                        {{ form.device_vendor }}
+                        <br/>
+                        {{ form.alias.label }}
+                        {{ form.alias }}
+                    </div>
+                    <div class="modal-footer">
+                        {#                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>#}
+                        {#                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>#}
+                        <input type="submit" value="Go">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('#editRequest').on('show.bs.modal', function (e) {
+            var mac_address = $(e.relatedTarget).data('mac_address');
+            var src_vendor = $(e.relatedTarget).data('src_vendor');
+            var alias = $(e.relatedTarget).data('alias');
+
+            $(e.currentTarget).find('input[name="mac_address"]').val(mac_address);
+            $(e.currentTarget).find('input[name="device_vendor"]').val(src_vendor);
+            $(e.currentTarget).find('input[name="alias"]').val(alias);
+        });
+
+    </script>
+
 {% endblock %}
+
