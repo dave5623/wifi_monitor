@@ -1,6 +1,7 @@
 import ConfigParser
 import ast
 import sys
+from itertools import groupby
 
 from flask import Flask, request, render_template, jsonify, redirect, flash
 from flask.ext.babel import Babel, format_datetime
@@ -121,6 +122,10 @@ def device_list():
     return render_template('device_list.html', dev_count=dev_count)
 
 
+def grouper(item):
+    return item.timestamp.year, item.timestamp.month, item.timestamp.day, item.timestamp.hour
+
+
 @app.route('/device_history', methods=['GET', 'POST'])
 def device_history():
     # mac_addresses = models.ProbeRequest.query.filter_by(src=form.mac_address.data).all()
@@ -130,8 +135,24 @@ def device_history():
 
     if request.method == "POST":
         data = request.form
+        # get a list of entries with the specified mac
         device_history = models.ProbeRequest.query.filter_by(src=data['mac']).all()
-        return render_template('device_history.html', distinct_devices=distinct_devices, dev_history=device_history)
+
+        # DBSession.query(Article).group_by( sa.func.year(Article.created), sa.func.month(Article.created)).all()
+        # grouped_history = shared.db.session.query(models.ProbeRequest).group_by(func.year(models.ProbeRequest.timestamp)).all()
+        # print grouped_history
+
+        chart_labels = []
+        dataset = []
+        for ((year, month, day, hour), items) in groupby(device_history, grouper):
+            chart_labels.append(str(year) + "." + str(month) + "." + str(day) + " " + str(hour) + ":00")
+            data = []
+            for item in items:
+                data.append(item)
+            dataset.append(data)
+
+        return render_template('device_history.html', distinct_devices=distinct_devices, dev_history=device_history,
+                               chart_labels=chart_labels, dataset=dataset)
 
     return render_template('device_history.html', distinct_devices=distinct_devices)
 
@@ -144,7 +165,11 @@ def refresh_probe_requests():
 
 @app.template_filter('datetime')
 def format_timestamp(value, format='medium'):
-    return format_datetime(value, format="EE dd.MM.y HH:mm")
+    if format == 'short':
+        print 'printing: ' + str(value)
+        return format_datetime(value, format="y.MM.dd HH")
+    elif format == 'medium':
+        return format_datetime(value, format="EE y.MM.dd HH:mm")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@
     <script type=text/javascript src="{{ url_for('static', filename='js/bootstrap-select.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-select.css') }}">
     <script type=text/javascript src="{{ url_for('static', filename='js/jquery.tablesorter.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='js/Chart.js') }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -17,53 +18,104 @@
         <input type="submit" class="btn btn-primary" value="Search">
     </form>
 
-    {%  if dev_history is defined %}
-        <table id="deviceHistory" cellpadding="10" cellspacing="5" class="table-bordered table-hover tablesorter">
-        <thead>
+    {% if dev_history is defined %}
+        <table id="device-history" cellpadding="10" cellspacing="5" class="table-bordered table-hover tablesorter">
+            <thead>
             <th>Date</th>
             <th>SSID</th>
             <th>SSI Signal</th>
-        </thead>
-        <tbody>
-            {%  for dev in dev_history %}
+            </thead>
+            <tbody>
+            {% for dev in dev_history %}
                 <tr>
                     <td>{{ dev.timestamp | datetime }}</td>
                     <td>{{ dev.ssid }}</td>
                     <td>{{ dev.ssi_signal }}</td>
                 </tr>
             {% endfor %}
-        </tbody>
+            </tbody>
         </table>
 
+        <canvas id="device-history-chart" width="775" height="500"></canvas>
+
         <script>
-            $(document).ready(function()
-            {
-               $("#deviceHistory").tablesorter();
+            {# initiate the table #}
+            $(document).ready(function () {
+                $("#device-history").tablesorter();
             });
+
+            {# initiate the chart #}
+            var context = document.getElementById('device-history-chart').getContext('2d');
+            var data = {
+                labels: [],
+                datasets: [
+                    {
+                        label: "My Second dataset",
+                        fillColor: "rgba(151,187,205,0.5)",
+                        strokeColor: "rgba(151,187,205,0.8)",
+                        highlightFill: "rgba(151,187,205,0.75)",
+                        highlightStroke: "rgba(151,187,205,1)",
+                        data: []
+                    }
+                ]
+            };
+
+            {%  for label in chart_labels %}
+                data['labels'].push('{{ label }}');
+            {% endfor %}
+
+            {%  for data in dataset %}
+                data['datasets'][0]['data'].push({{ data|length }});
+            {%  endfor %}
+
+            var options =
+            {
+                scaleBeginAtZero: true,
+
+                scaleShowGridLines: true,
+
+                scaleGridLineColor: "rgba(0,0,0,.05)",
+
+                scaleGridLineWidth: 1,
+
+                scaleShowHorizontalLines: true,
+
+                scaleShowVerticalLines: true,
+
+                barShowStroke: true,
+
+                barStrokeWidth: 2,
+
+                barValueSpacing: 5,
+
+                barDatasetSpacing: 1
+
+            };
+            new Chart(context).Bar(data,options);
         </script>
-    {%  endif %}
-{#        <table id="deviceTable" cellpadding="10" cellspacing="5" class="table-bordered table-hover tablesorter">#}
-{#        <thead>#}
-{#            <tr>#}
-{#                <th>Device MAC</th>#}
-{#                <th># of Hits</th>#}
-{#                <th>Last Seen</th>#}
-{#            </tr>#}
-{#        </thead>#}
-{#        <tbody>#}
-{#            {% for dev, info in dev_count.iteritems() %}#}
-{#                <tr>#}
-{#                    <td>#}
-{#                    {% if dev.alias|length > 0 %}#}
-{#                        {{ dev.alias }}#}
-{#                    {% else %}#}
-{#                        {{ dev.src }}#}
-{#                    {% endif %}</td>#}
-{#                    <td> {{ info[0] }}</td>#}
-{#                    <td>{{ info[1] | datetime }}</td>#}
-{#                </tr>#}
-{#            {% endfor %}#}
-{#        </tbody>#}
-{#    </table>#}
+    {% endif %}
+    {#        <table id="deviceTable" cellpadding="10" cellspacing="5" class="table-bordered table-hover tablesorter">#}
+    {#        <thead>#}
+    {#            <tr>#}
+    {#                <th>Device MAC</th>#}
+    {#                <th># of Hits</th>#}
+    {#                <th>Last Seen</th>#}
+    {#            </tr>#}
+    {#        </thead>#}
+    {#        <tbody>#}
+    {#            {% for dev, info in dev_count.iteritems() %}#}
+    {#                <tr>#}
+    {#                    <td>#}
+    {#                    {% if dev.alias|length > 0 %}#}
+    {#                        {{ dev.alias }}#}
+    {#                    {% else %}#}
+    {#                        {{ dev.src }}#}
+    {#                    {% endif %}</td>#}
+    {#                    <td> {{ info[0] }}</td>#}
+    {#                    <td>{{ info[1] | datetime }}</td>#}
+    {#                </tr>#}
+    {#            {% endfor %}#}
+    {#        </tbody>#}
+    {#    </table>#}
 
 {% endblock %}
